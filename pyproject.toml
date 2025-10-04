@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jules-agent-sdk"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Python SDK for the Jules API"
 readme = "docs/README.md"
 requires-python = ">=3.8"
@@ -52,3 +52,6 @@ disallow_untyped_defs = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+jules_agent_sdk = ["py.typed"]
