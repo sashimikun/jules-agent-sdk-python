@@ -1,0 +1,6 @@
+include LICENSE
+include docs/README.md
+include pyproject.toml
+recursive-include src/jules_agent_sdk *.py
+recursive-include tests *.py
+recursive-include examples *.py
