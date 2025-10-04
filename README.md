@@ -47,32 +47,6 @@ export JULES_API_KEY="your-api-key-here"
 
 Get your API key from the [Jules dashboard](https://jules.google.com).
 
-## Examples
-
-### 1. Simple Test
-```bash
-python examples/simple_test.py
-```
-- List your connected sources
-- Create a new session
-- Show session details
-
-### 2. Interactive Demo
-```bash
-python examples/interactive_demo.py
-```
-- All API methods
-- Error handling
-- Pagination
-
-### 3. Real-Time Monitoring
-```bash
-python examples/test_with_real_api.py
-```
-- Create a session
-- Monitor progress
-- Show activities
-
 ## Features
 
 ### API Coverage
@@ -80,18 +54,6 @@ python examples/test_with_real_api.py
 - **Activities**: get, list with automatic pagination
 - **Sources**: get, list with automatic pagination
 
-### Reliability
-- Automatic retries on network and server errors (default: 3 attempts)
-- Request timeouts (default: 30 seconds)
-- Rate limit handling
-- Connection pooling
-
-### Developer Friendly
-- Full type hints for autocomplete
-- Both sync and async support
-- Context managers for cleanup
-- Detailed error messages
-- Logging support
 
 ## Documentation
 
