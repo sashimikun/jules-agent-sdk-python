@@ -4,6 +4,8 @@
 
 A Python SDK for the Jules API. Simple interface for working with Jules sessions, activities, and sources.
 
+![Jules](jules.png)
+
 ## Quick Start
 
 ### Installation
