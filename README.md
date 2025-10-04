@@ -9,10 +9,6 @@ A Python SDK for the Jules API. Simple interface for working with Jules sessions
 ### Installation
 
 ```bash
-# From the project directory
-pip install -e .
-
-# Or when published to PyPI
 pip install jules-agent-sdk
 ```
 

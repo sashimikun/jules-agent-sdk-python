@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jules-agent-sdk"
 version = "0.1.0"
-description = "A user-friendly Python SDK for the Jules API"
+description = "A Python SDK for the Jules API"
 readme = "docs/README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Jules API Team", email = "support@jules.ai"}
+    {name = "Sheing Ng", email = "sng@asyncfunc.ai"}
 ]
 keywords = ["jules", "api", "sdk", "agent", "ai"]
 classifiers = [
