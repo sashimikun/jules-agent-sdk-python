@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing to the Jules Agent SDK for Python! This document provides guidelines and instructions for contributing to the project.
 
+**Maintainer:** Sheing Ng (sng@asyncfunc.ai)
+
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
@@ -337,7 +339,7 @@ When requesting features, include:
 
 ### Security Issues
 
-For security vulnerabilities, please email security@example.com instead of opening a public issue.
+For security vulnerabilities, please email sng@asyncfunc.ai instead of opening a public issue.
 
 ## Project Structure
 
@@ -368,6 +370,8 @@ jules-agent-sdk-python/
 
 ## Questions?
 
-Feel free to open an issue for questions or reach out to the maintainers.
+Feel free to open an issue for questions or reach out to the maintainer:
+
+**Sheing Ng** - sng@asyncfunc.ai
 
 Thank you for contributing to Jules Agent SDK!
