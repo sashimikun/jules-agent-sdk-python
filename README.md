@@ -1,4 +1,4 @@
-[日本語](README.ja.md)
+[日本語](README.ja.md) | [Español](README.es.md)
 
 # Jules Agent SDK for Python
 
