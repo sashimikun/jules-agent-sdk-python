@@ -1,6 +1,8 @@
+[English](README.md)
+
 # Python用Jules Agent SDK
 
-> **免責事項**: これはJules API SDKラッパーのオープンソース実装であり、Googleとは一切関係ありません。公式APIについては、https://developers.google.com/jules/api/ をご覧ください。
+> **免責事項**: これは、Jules API SDKラッパーのオープンソース実装であり、Googleとは一切関係ありません。公式APIについては、https://developers.google.com/jules/api/ をご覧ください。
 
 Jules API用のPython SDKです。Julesのセッション、アクティビティ、ソースを簡単に操作できるインターフェースを提供します。
 
@@ -22,19 +24,19 @@ from jules_agent_sdk import JulesClient
 # APIキーで初期化
 client = JulesClient(api_key="your-api-key")
 
-# ソースを一覧表示
+# ソースの一覧を取得
 sources = client.sources.list_all()
-print(f"Found {len(sources)} sources")
+print(f"{len(sources)}個のソースが見つかりました")
 
-# セッションを作成
+# セッションの作成
 session = client.sessions.create(
-    prompt="Add error handling to the authentication module",
+    prompt="認証モジュールにエラーハンドリングを追加する",
     source=sources[0].name,
     starting_branch="main"
 )
 
-print(f"Session created: {session.id}")
-print(f"View at: {session.url}")
+print(f"セッションが作成されました: {session.id}")
+print(f"確認用URL: {session.url}")
 
 client.close()
 ```
@@ -74,12 +76,12 @@ with JulesClient(api_key="your-api-key") as client:
     sources = client.sources.list_all()
 
     session = client.sessions.create(
-        prompt="Fix authentication bug",
+        prompt="認証のバグを修正",
         source=sources[0].name,
         starting_branch="main"
     )
 
-    print(f"Created: {session.id}")
+    print(f"作成されました: {session.id}")
 ```
 
 ### Async/Awaitのサポート
@@ -93,14 +95,14 @@ async def main():
         sources = await client.sources.list_all()
 
         session = await client.sessions.create(
-            prompt="Add unit tests",
+            prompt="単体テストを追加",
             source=sources[0].name,
             starting_branch="main"
         )
 
         # 完了を待つ
         completed = await client.sessions.wait_for_completion(session.id)
-        print(f"Done: {completed.state}")
+        print(f"完了: {completed.state}")
 
 asyncio.run(main())
 ```
@@ -119,18 +121,18 @@ from jules_agent_sdk.exceptions import (
 try:
     client = JulesClient(api_key="your-api-key")
     session = client.sessions.create(
-        prompt="My task",
+        prompt="私のタスク",
         source="sources/invalid-id"
     )
 except JulesAuthenticationError:
-    print("Invalid API key")
+    print("無効なAPIキーです")
 except JulesNotFoundError:
-    print("Source not found")
+    print("ソースが見つかりません")
 except JulesValidationError as e:
-    print(f"Validation error: {e.message}")
+    print(f"検証エラー: {e.message}")
 except JulesRateLimitError as e:
     retry_after = e.response.get("retry_after_seconds", 60)
-    print(f"Rate limited. Retry after {retry_after} seconds")
+    print(f"レート制限を受けました。{retry_after}秒後にもう一度お試しください")
 finally:
     client.close()
 ```
@@ -140,17 +142,17 @@ finally:
 ```python
 client = JulesClient(
     api_key="your-api-key",
-    timeout=60,              # Request timeout in seconds (default: 30)
-    max_retries=5,           # Max retry attempts (default: 3)
-    retry_backoff_factor=2.0 # Backoff multiplier (default: 1.0)
+    timeout=60,              # リクエストのタイムアウト（秒）（デフォルト: 30）
+    max_retries=5,           # 最大リトライ回数（デフォルト: 3）
+    retry_backoff_factor=2.0 # バックオフ乗数（デフォルト: 1.0）
 )
 ```
 
-自動リトライは以下の場合に発生します:
+以下のエラーに対して自動的にリトライが行われます:
 - ネットワークエラー（接続の問題、タイムアウト）
 - サーバーエラー（5xxステータスコード）
 
-以下の場合はリトライしません:
+以下のエラーに対してはリトライは行われません:
 - クライアントエラー（4xxステータスコード）
 - 認証エラー
 
@@ -161,10 +163,10 @@ client = JulesClient(
 ```python
 # セッションの作成
 session = client.sessions.create(
-    prompt="Task description",
+    prompt="タスクの説明",
     source="sources/source-id",
     starting_branch="main",
-    title="Optional title",
+    title="任意のタイトル",
     require_plan_approval=False
 )
 
@@ -179,7 +181,7 @@ sessions = result["sessions"]
 client.sessions.approve_plan("session-id")
 
 # メッセージの送信
-client.sessions.send_message("session-id", "Additional instructions")
+client.sessions.send_message("session-id", "追加の指示")
 
 # 完了待機
 completed = client.sessions.wait_for_completion(
