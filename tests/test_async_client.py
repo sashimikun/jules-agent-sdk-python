@@ -71,6 +71,65 @@ class TestAsyncJulesClient:
 
     @pytest.mark.asyncio
     @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
+    async def test_async_sessions_get(self, mock_request):
+        """Test async getting a session."""
+        mock_request.return_value = {"id": "s1"}
+        client = AsyncJulesClient(api_key="test-api-key")
+        session = await client.sessions.get("s1")
+        assert session.id == "s1"
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
+    async def test_async_sessions_approve_plan(self, mock_request):
+        """Test async approving a plan."""
+        client = AsyncJulesClient(api_key="test-api-key")
+        await client.sessions.approve_plan("s1")
+        mock_request.assert_called_once()
+        assert mock_request.call_args[0] == ("POST", "sessions/s1:approvePlan")
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
+    async def test_async_sessions_send_message(self, mock_request):
+        """Test async sending a message."""
+        client = AsyncJulesClient(api_key="test-api-key")
+        await client.sessions.send_message("s1", "Test")
+        mock_request.assert_called_once()
+        assert mock_request.call_args[0] == ("POST", "sessions/s1:sendMessage")
+        assert mock_request.call_args[1]["json"] == {"prompt": "Test"}
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_client.asyncio.sleep", new_callable=AsyncMock)
+    @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
+    async def test_async_sessions_wait_for_completion(self, mock_request, mock_sleep):
+        """Test async waiting for completion."""
+        mock_request.side_effect = [
+            {"state": "IN_PROGRESS"},
+            {"state": "COMPLETED", "id": "s1"},
+        ]
+        client = AsyncJulesClient(api_key="test-api-key")
+        session = await client.sessions.wait_for_completion("s1")
+        assert session.id == "s1"
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
+    async def test_async_activities_get(self, mock_request):
+        """Test async getting an activity."""
+        mock_request.return_value = {"id": "a1"}
+        client = AsyncJulesClient(api_key="test-api-key")
+        activity = await client.activities.get("s1", "a1")
+        assert activity.id == "a1"
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
+    async def test_async_activities_list(self, mock_request):
+        """Test async listing activities."""
+        mock_request.return_value = {"activities": [{"id": "a1"}]}
+        client = AsyncJulesClient(api_key="test-api-key")
+        result = await client.activities.list("s1")
+        assert len(result["activities"]) == 1
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
     async def test_async_activities_list_all(self, mock_request):
         """Test async listing all activities with pagination."""
         mock_request.side_effect = [
@@ -93,3 +152,72 @@ class TestAsyncJulesClient:
         assert len(activities) == 2
         assert activities[0].id == "a1"
         assert activities[1].id == "a2"
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
+    async def test_async_sources_get(self, mock_request):
+        """Test async getting a source."""
+        mock_request.return_value = {"id": "src1"}
+        client = AsyncJulesClient(api_key="test-api-key")
+        source = await client.sources.get("src1")
+        assert source.id == "src1"
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
+    async def test_async_sources_list(self, mock_request):
+        """Test async listing sources."""
+        mock_request.return_value = {"sources": [{"id": "src1"}]}
+        client = AsyncJulesClient(api_key="test-api-key")
+        result = await client.sources.list()
+        assert len(result["sources"]) == 1
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
+    async def test_async_sessions_list_all(self, mock_request):
+        """Test async listing all sessions with pagination."""
+        mock_request.side_effect = [
+            {
+                "sessions": [{"id": "s1"}],
+                "nextPageToken": "next",
+            },
+            {"sessions": [{"id": "s2"}]},
+        ]
+        client = AsyncJulesClient(api_key="test-api-key")
+        sessions = await client.sessions.list_all()
+        assert len(sessions) == 2
+        assert sessions[0].id == "s1"
+        assert sessions[1].id == "s2"
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_base.AsyncBaseClient._request")
+    async def test_async_sources_list_all(self, mock_request):
+        """Test async listing all sources with pagination."""
+        mock_request.side_effect = [
+            {"sources": [{"id": "src1"}], "nextPageToken": "next"},
+            {"sources": [{"id": "src2"}]},
+        ]
+        client = AsyncJulesClient(api_key="test-api-key")
+        sources = await client.sources.list_all()
+        assert len(sources) == 2
+        assert sources[0].id == "src1"
+        assert sources[1].id == "src2"
+
+
+class TestAsyncErrorHandling:
+    """Test error handling for the async client."""
+
+    @pytest.mark.asyncio
+    @patch("jules_agent_sdk.async_base.aiohttp.ClientSession.request")
+    async def test_async_authentication_error(self, mock_request):
+        """Test async authentication error."""
+        mock_response = AsyncMock()
+        mock_response.ok = False
+        mock_response.status = 401
+        mock_response.json.return_value = {"error": {"message": "Invalid API key"}}
+        mock_request.return_value.__aenter__.return_value = mock_response
+
+        client = AsyncJulesClient(api_key="invalid-key")
+        with pytest.raises(JulesAuthenticationError):
+            await client.sessions.list()
+
+        await client.close()

@@ -194,3 +194,27 @@ class SessionsAPI:
                 raise TimeoutError(f"Session polling timed out after {timeout} seconds")
 
             time.sleep(poll_interval)
+
+    def list_all(self) -> List[Session]:
+        """List all sessions (handles pagination).
+
+        Returns:
+            A list of all Session objects
+
+        Example:
+            >>> all_sessions = client.sessions.list_all()
+            >>> for session in all_sessions:
+            ...     print(session.id)
+        """
+        all_sessions: List[Session] = []
+        page_token: Optional[str] = None
+
+        while True:
+            result = self.list(page_token=page_token)
+            all_sessions.extend(result["sessions"])
+
+            page_token = result.get("nextPageToken")
+            if not page_token:
+                break
+
+        return all_sessions
