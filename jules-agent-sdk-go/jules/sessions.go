@@ -164,6 +164,13 @@ func (s *SessionsAPI) WaitForCompletion(ctx context.Context, sessionID string, o
 	defer ticker.Stop()
 
 	for {
+		// Check if context is done before making request
+		select {
+		case <-ctx.Done():
+			return nil, NewTimeoutError(fmt.Sprintf("session did not complete within %v", timeout))
+		default:
+		}
+
 		// Get session status
 		session, err := s.Get(ctx, sessionID)
 		if err != nil {

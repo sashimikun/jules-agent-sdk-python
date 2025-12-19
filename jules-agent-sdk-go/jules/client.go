@@ -22,6 +22,9 @@ type BaseClient struct {
 
 // NewBaseClient creates a new BaseClient
 func NewBaseClient(config *Config) (*BaseClient, error) {
+	if config == nil {
+		return nil, fmt.Errorf("config cannot be nil")
+	}
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
@@ -121,11 +124,11 @@ func (c *BaseClient) request(ctx context.Context, method, path string, body inte
 
 			// Retry on 5xx errors
 			if resp.StatusCode >= 500 {
-				c.errorCount++
 				continue
 			}
 
 			// Don't retry on client errors (4xx)
+			c.errorCount++
 			return nil, lastErr
 		}
 
