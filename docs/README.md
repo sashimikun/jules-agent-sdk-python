@@ -4,12 +4,12 @@ A user-friendly Python SDK for the Jules API. This SDK provides a clean, Pythoni
 
 ## Features
 
-- 🚀 **Simple and intuitive API** - Easy-to-use client with straightforward methods
-- 📦 **Modular design** - Organized into logical modules (sessions, activities, sources)
-- 🔄 **Async support** - Full support for async/await with `aiohttp`
-- 🛡️ **Type hints** - Complete type annotations for better IDE support
-- ✅ **Error handling** - Clear, descriptive exceptions for different error cases
-- 📖 **Well documented** - Comprehensive docstrings and examples
+- **Simple and intuitive API** - Easy-to-use client with straightforward methods
+- **Modular design** - Organized into logical modules (sessions, activities, sources)
+- **Async support** - Full support for async/await with `aiohttp`
+- **Type hints** - Complete type annotations for better IDE support
+- **Error handling** - Clear, descriptive exceptions for different error cases
+- **Well documented** - Comprehensive docstrings and examples
 
 ## Installation
 
