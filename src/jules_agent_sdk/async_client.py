@@ -106,6 +106,21 @@ class AsyncSessionsAPI:
 
             await asyncio.sleep(poll_interval)
 
+    async def list_all(self) -> List[Session]:
+        """List all sessions asynchronously (handles pagination)."""
+        all_sessions: List[Session] = []
+        page_token: Optional[str] = None
+
+        while True:
+            result = await self.list(page_token=page_token)
+            all_sessions.extend(result["sessions"])
+
+            page_token = result.get("nextPageToken")
+            if not page_token:
+                break
+
+        return all_sessions
+
 
 class AsyncActivitiesAPI:
     """Async API client for managing session activities."""

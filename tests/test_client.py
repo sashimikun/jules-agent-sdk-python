@@ -116,6 +116,104 @@ class TestJulesClient:
         assert result["activities"][0].id == "a1"
 
     @patch("jules_agent_sdk.base.BaseClient._request")
+    def test_sessions_approve_plan(self, mock_request):
+        """Test approving a session plan."""
+        client = JulesClient(api_key="test-api-key")
+        client.sessions.approve_plan("s1")
+        mock_request.assert_called_once()
+        assert mock_request.call_args[0] == ("POST", "sessions/s1:approvePlan")
+
+    @patch("jules_agent_sdk.base.BaseClient._request")
+    def test_sessions_send_message(self, mock_request):
+        """Test sending a message to a session."""
+        client = JulesClient(api_key="test-api-key")
+        client.sessions.send_message("s1", "Hello")
+        mock_request.assert_called_once()
+        assert mock_request.call_args[0] == ("POST", "sessions/s1:sendMessage")
+        assert mock_request.call_args[1]["json"] == {"prompt": "Hello"}
+
+    @patch("jules_agent_sdk.sessions.time.sleep", return_value=None)
+    @patch("jules_agent_sdk.base.BaseClient._request")
+    def test_sessions_wait_for_completion_success(self, mock_request, mock_sleep):
+        """Test waiting for session completion successfully."""
+        mock_request.side_effect = [
+            {"state": "IN_PROGRESS"},
+            {"state": "COMPLETED", "id": "s1"},
+        ]
+        client = JulesClient(api_key="test-api-key")
+        session = client.sessions.wait_for_completion("s1")
+        assert session.id == "s1"
+        assert mock_request.call_count == 2
+
+    @patch("jules_agent_sdk.base.BaseClient._request")
+    def test_sessions_list_all(self, mock_request):
+        """Test listing all sessions with pagination."""
+        mock_request.side_effect = [
+            {
+                "sessions": [{"id": "s1"}],
+                "nextPageToken": "next",
+            },
+            {"sessions": [{"id": "s2"}]},
+        ]
+        client = JulesClient(api_key="test-api-key")
+        sessions = client.sessions.list_all()
+        assert len(sessions) == 2
+        assert sessions[0].id == "s1"
+        assert sessions[1].id == "s2"
+
+    @patch("jules_agent_sdk.base.BaseClient._request")
+    def test_activities_get(self, mock_request):
+        """Test getting a single activity."""
+        mock_request.return_value = {"id": "a1", "description": "Activity 1"}
+        client = JulesClient(api_key="test-api-key")
+        activity = client.activities.get("s1", "a1")
+        assert activity.id == "a1"
+        mock_request.assert_called_once()
+        assert mock_request.call_args[0] == ("GET", "sessions/s1/activities/a1")
+
+    @patch("jules_agent_sdk.base.BaseClient._request")
+    def test_activities_list_all(self, mock_request):
+        """Test listing all activities with pagination."""
+        mock_request.side_effect = [
+            {
+                "activities": [{"id": "a1"}],
+                "nextPageToken": "next",
+            },
+            {"activities": [{"id": "a2"}]},
+        ]
+        client = JulesClient(api_key="test-api-key")
+        activities = client.activities.list_all("s1")
+        assert len(activities) == 2
+        assert activities[0].id == "a1"
+        assert activities[1].id == "a2"
+
+    @patch("jules_agent_sdk.base.BaseClient._request")
+    def test_sources_get(self, mock_request):
+        """Test getting a single source."""
+        mock_request.return_value = {"id": "src1", "githubRepo": {"owner": "test"}}
+        client = JulesClient(api_key="test-api-key")
+        source = client.sources.get("src1")
+        assert source.id == "src1"
+        mock_request.assert_called_once()
+        assert mock_request.call_args[0] == ("GET", "sources/src1")
+
+    @patch("jules_agent_sdk.base.BaseClient._request")
+    def test_sources_list_all(self, mock_request):
+        """Test listing all sources with pagination."""
+        mock_request.side_effect = [
+            {
+                "sources": [{"id": "src1"}],
+                "nextPageToken": "next",
+            },
+            {"sources": [{"id": "src2"}]},
+        ]
+        client = JulesClient(api_key="test-api-key")
+        sources = client.sources.list_all()
+        assert len(sources) == 2
+        assert sources[0].id == "src1"
+        assert sources[1].id == "src2"
+
+    @patch("jules_agent_sdk.base.BaseClient._request")
     def test_sources_list(self, mock_request):
         """Test listing sources."""
         mock_request.return_value = {
