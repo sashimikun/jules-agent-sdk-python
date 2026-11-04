@@ -9,6 +9,7 @@ from jules_agent_sdk.exceptions import (
     JulesValidationError,
     JulesRateLimitError,
 )
+from jules_agent_sdk.ralph import RalphLoop, AsyncRalphLoop, RalphLoopResult
 
 __version__ = "0.1.0"
 __all__ = [
@@ -19,4 +20,8 @@ __all__ = [
     "JulesNotFoundError",
     "JulesValidationError",
     "JulesRateLimitError",
+    # Ralph Wiggum loop
+    "RalphLoop",
+    "AsyncRalphLoop",
+    "RalphLoopResult",
 ]

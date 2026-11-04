@@ -75,7 +75,7 @@ class JulesClient:
             max_retries=max_retries,
             retry_backoff_factor=retry_backoff_factor,
         )
-        self.sessions = SessionsAPI(self._base_client)
+        self.sessions = SessionsAPI(self._base_client, parent_client=self)
         self.activities = ActivitiesAPI(self._base_client)
         self.sources = SourcesAPI(self._base_client)
 

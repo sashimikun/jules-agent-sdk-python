@@ -1,11 +1,14 @@
 """Sessions API module."""
 
 import time
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Callable, TYPE_CHECKING
 
 from jules_agent_sdk.models import Session, SessionState
 from jules_agent_sdk.base import BaseClient
 from jules_agent_sdk.exceptions import JulesAPIError
+
+if TYPE_CHECKING:
+    from jules_agent_sdk.ralph import RalphLoopResult
 
 # Constants for session polling
 DEFAULT_POLL_INTERVAL = 5
@@ -15,13 +18,15 @@ DEFAULT_TIMEOUT = 600
 class SessionsAPI:
     """API client for managing Jules sessions."""
 
-    def __init__(self, client: BaseClient) -> None:
+    def __init__(self, client: BaseClient, parent_client: Any = None) -> None:
         """Initialize the Sessions API.
 
         Args:
             client: Base HTTP client instance
+            parent_client: Optional parent JulesClient for Ralph loop access
         """
         self.client = client
+        self._parent_client = parent_client
 
     def create(
         self,
@@ -194,3 +199,72 @@ class SessionsAPI:
                 raise TimeoutError(f"Session polling timed out after {timeout} seconds")
 
             time.sleep(poll_interval)
+
+    def ralph_loop(
+        self,
+        prompt: str,
+        source: str,
+        starting_branch: Optional[str] = None,
+        title: Optional[str] = None,
+        completion_promise: Optional[str] = None,
+        max_iterations: Optional[int] = None,
+        poll_interval: int = DEFAULT_POLL_INTERVAL,
+        session_timeout: int = DEFAULT_TIMEOUT,
+        collect_activities: bool = True,
+        on_iteration_start: Optional[Callable[[int, str], None]] = None,
+        on_iteration_end: Optional[Callable[[int, Session], None]] = None,
+    ) -> "RalphLoopResult":
+        """Run a Ralph Wiggum loop - iterative, self-referential session loop.
+
+        The Ralph loop repeatedly runs the same prompt until either:
+        - The completion_promise is found in session output
+        - max_iterations is reached
+
+        This implements the "Ralph Wiggum" technique for persistent AI iteration,
+        where failures are treated as data and the loop continues despite setbacks.
+
+        Args:
+            prompt: The prompt to run on each iteration (stays the same)
+            source: Source for the session (e.g., "sources/repo-id")
+            starting_branch: Optional starting branch for GitHub repos
+            title: Optional session title prefix (iteration number appended)
+            completion_promise: Text that signals completion when found in output
+            max_iterations: Maximum iterations before stopping (safety limit)
+            poll_interval: Seconds between session polling
+            session_timeout: Timeout for each session in seconds
+            collect_activities: Whether to collect activities from each session
+            on_iteration_start: Callback(iteration, prompt) at start of each iter
+            on_iteration_end: Callback(iteration, session) at end of each iter
+
+        Returns:
+            RalphLoopResult with details about the loop execution
+
+        Example:
+            >>> result = client.sessions.ralph_loop(
+            ...     prompt="Build a REST API. Output <promise>COMPLETE</promise> when done.",
+            ...     source="sources/my-repo",
+            ...     completion_promise="COMPLETE",
+            ...     max_iterations=50
+            ... )
+            >>> print(result)
+
+        Reference: https://ghuntley.com/ralph/
+        """
+        from jules_agent_sdk.ralph import RalphLoop
+
+        # We need access to the parent client, not just BaseClient
+        # Get it from the activities API which has same parent
+        ralph = RalphLoop(self._parent_client)
+        return ralph.run(
+            prompt=prompt,
+            source=source,
+            starting_branch=starting_branch,
+            title=title,
+            completion_promise=completion_promise,
+            max_iterations=max_iterations,
+            poll_interval=poll_interval,
+            session_timeout=session_timeout,
+            collect_activities=collect_activities,
+            on_iteration_start=on_iteration_start,
+            on_iteration_end=on_iteration_end,
+        )

@@ -1,18 +1,26 @@
 """Async Jules API client."""
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Callable, TYPE_CHECKING
 import asyncio
 from jules_agent_sdk.async_base import AsyncBaseClient
 from jules_agent_sdk.models import Session, Activity, Source, SessionState
 from jules_agent_sdk.exceptions import JulesAPIError
 
+if TYPE_CHECKING:
+    from jules_agent_sdk.ralph import RalphLoopResult
+
+# Constants for session polling
+DEFAULT_POLL_INTERVAL = 5
+DEFAULT_TIMEOUT = 600
+
 
 class AsyncSessionsAPI:
     """Async API client for managing Jules sessions."""
 
-    def __init__(self, client: AsyncBaseClient) -> None:
+    def __init__(self, client: AsyncBaseClient, parent_client: Any = None) -> None:
         """Initialize the async Sessions API."""
         self.client = client
+        self._parent_client = parent_client
 
     async def create(
         self,
@@ -105,6 +113,73 @@ class AsyncSessionsAPI:
                 raise TimeoutError(f"Session polling timed out after {timeout} seconds")
 
             await asyncio.sleep(poll_interval)
+
+    async def ralph_loop(
+        self,
+        prompt: str,
+        source: str,
+        starting_branch: Optional[str] = None,
+        title: Optional[str] = None,
+        completion_promise: Optional[str] = None,
+        max_iterations: Optional[int] = None,
+        poll_interval: int = DEFAULT_POLL_INTERVAL,
+        session_timeout: int = DEFAULT_TIMEOUT,
+        collect_activities: bool = True,
+        on_iteration_start: Optional[Callable[[int, str], Any]] = None,
+        on_iteration_end: Optional[Callable[[int, Session], Any]] = None,
+    ) -> "RalphLoopResult":
+        """Run a Ralph Wiggum loop - iterative, self-referential async session loop.
+
+        The Ralph loop repeatedly runs the same prompt until either:
+        - The completion_promise is found in session output
+        - max_iterations is reached
+
+        This implements the "Ralph Wiggum" technique for persistent AI iteration,
+        where failures are treated as data and the loop continues despite setbacks.
+
+        Args:
+            prompt: The prompt to run on each iteration (stays the same)
+            source: Source for the session (e.g., "sources/repo-id")
+            starting_branch: Optional starting branch for GitHub repos
+            title: Optional session title prefix (iteration number appended)
+            completion_promise: Text that signals completion when found in output
+            max_iterations: Maximum iterations before stopping (safety limit)
+            poll_interval: Seconds between session polling
+            session_timeout: Timeout for each session in seconds
+            collect_activities: Whether to collect activities from each session
+            on_iteration_start: Async callback(iteration, prompt) at start
+            on_iteration_end: Async callback(iteration, session) at end
+
+        Returns:
+            RalphLoopResult with details about the loop execution
+
+        Example:
+            >>> result = await client.sessions.ralph_loop(
+            ...     prompt="Build a REST API. Output <promise>COMPLETE</promise> when done.",
+            ...     source="sources/my-repo",
+            ...     completion_promise="COMPLETE",
+            ...     max_iterations=50
+            ... )
+            >>> print(result)
+
+        Reference: https://ghuntley.com/ralph/
+        """
+        from jules_agent_sdk.ralph import AsyncRalphLoop
+
+        ralph = AsyncRalphLoop(self._parent_client)
+        return await ralph.run(
+            prompt=prompt,
+            source=source,
+            starting_branch=starting_branch,
+            title=title,
+            completion_promise=completion_promise,
+            max_iterations=max_iterations,
+            poll_interval=poll_interval,
+            session_timeout=session_timeout,
+            collect_activities=collect_activities,
+            on_iteration_start=on_iteration_start,
+            on_iteration_end=on_iteration_end,
+        )
 
 
 class AsyncActivitiesAPI:
@@ -272,7 +347,7 @@ class AsyncJulesClient:
             raise ValueError("API key is required")
 
         self._base_client = AsyncBaseClient(api_key=api_key, base_url=base_url)
-        self.sessions = AsyncSessionsAPI(self._base_client)
+        self.sessions = AsyncSessionsAPI(self._base_client, parent_client=self)
         self.activities = AsyncActivitiesAPI(self._base_client)
         self.sources = AsyncSourcesAPI(self._base_client)
 
